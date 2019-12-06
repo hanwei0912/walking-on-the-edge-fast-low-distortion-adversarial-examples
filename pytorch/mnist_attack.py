@@ -42,9 +42,9 @@ model = SmallCNN().to(DEVICE)
 model_dict = model.load_state_dict(torch.load('./model/mnist.pth'))
 
 #attacker = FGSM(eps=0.3, device=DEVICE)
-attacker = IFGSM(steps=20,eps=0.3,eps_iter=0.1, device=DEVICE)
+#attacker = IFGSM(steps=20,eps=0.3,eps_iter=0.1, device=DEVICE)
 #attacker = PGD(steps=20,eps=4,eps_iter=3, device=DEVICE)
-#attacker = BP(steps=20, device=DEVICE)
+attacker = BP(steps=20, device=DEVICE)
 #attacker = DDN(steps=100, device=DEVICE)
 
 requires_grad_(model, True)
@@ -58,8 +58,8 @@ adv_label = np.zeros((10000,1))
 #requires_grad_(model, False)
 for i, (images, labels) in enumerate(tqdm.tqdm(test_loader, ncols=80)):
     images, labels = images.to(DEVICE), labels.to(DEVICE)
-    best_x = attacker.attack(model, images, labels)
-    #adv,best_x = attacker.attack(model, images, labels)
+    #best_x = attacker.attack(model, images, labels)
+    adv,best_x = attacker.attack(model, images, labels)
     adv_pred = model(best_x).argmax(1)
     i_sta = i*100
     i_end = (i+1)*100

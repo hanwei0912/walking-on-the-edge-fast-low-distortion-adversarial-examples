@@ -7,8 +7,6 @@ import csv
 import pdb
 import time
 
-#from attacks import SymmetricFun5
-#from attacks import BaselineFun5
 from attacks import KKTFun5
 from cleverhans.utils_tf import model_train, model_eval, tf_model_load
 import numpy as np

@@ -9,12 +9,13 @@ def softmax_cross_entropy_our(logits, labels, device):
     y_hot = torch.zeros(logits.shape[0],logits.shape[1])
     y_hot = y_hot.to(device)
     y_hot = y_hot.scatter_(1,torch.unsqueeze(labels,1),1)
+    y_hot = torch.autograd.Variable(y_hot, requires_grad=False)
     tmp = logits*y_hot
     logits_1 = logits - tmp
-    j_best = tmp.sum(1)
+    j_best,_ = tmp.max(1)
     j_best_v = j_best.view(-1,1).expand(-1,logits.shape[1])
     logits_2 = logits_1 - j_best_v + y_hot*j_best_v
-    tmp_s = logits_2.sum(1)
+    tmp_s,_ = logits_2.max(1)
     up = tmp_s - j_best
     down = torch.log(torch.sum(torch.exp(logits_2)+1,1))
     loss = up - down
@@ -144,22 +145,21 @@ class BP:
         flag_cross = flag_cross.to(self.device)
         best_x = torch.zeros_like(inputs)
         for i in range(self.steps):
-            delta = inputs - adv
+            delta = inputs - adv.clone()
             delta_norm = delta.data.view(batch_size, -1).norm(p=2, dim=1)
             delta_norm = delta_norm.view(batch_size,1,1,1).expand(-1,delta.shape[1],delta.shape[2],delta.shape[3])
             nd = delta/delta_norm
+            adv = torch.autograd.Variable(adv, requires_grad=True)
             logits = model(adv)
             pred_labels = logits.argmax(1)
-            #ce_loss = F.cross_entropy(logits, labels, reduction='sum')
             # our loss
-            our_loss = softmax_cross_entropy_our(logits, labels, self.device)
-            #ce_loss = our_loss.sum()
-            #loss = multiplier * ce_loss
-            adv.retain_grad()
-            #loss.backward(torch.ones_like(loss),retain_graph=True)
-            our_loss.backward(torch.ones_like(our_loss),retain_graph=True)
-            #loss.backward(retain_graph=True)
-            grad = adv.grad
+            our_loss =F.cross_entropy(logits,labels)
+            #our_loss = softmax_cross_entropy_our(logits, labels, self.device)
+            loss = multiplier * our_loss
+            #our_loss.sum().backward(our_loss,retain_graph=False)
+            loss.backward(torch.ones_like(loss),retain_graph=False)
+            grad = - adv.grad
+            adv.grad.data.zero_()
             grad_norm = grad.view(batch_size,-1).norm(p=2, dim=1)
 
             if (grad_norm== 0).any():

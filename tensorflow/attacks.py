@@ -93,7 +93,7 @@ class KKTFun5(Attack):
             # save log
             tmp = tf.one_hot(tf.cast(i, tf.int32),self.nb_iter)
             log_step = log_step + tf.reshape(norm_l2(adv_x-x),(delta.shape[0],1))*tmp
-            log_suc = log_suc + tf.reshape(tf.cast(flag, tf.float32),(flag.shape[0],1))*tmp
+            log_suc = log_suc + tf.reshape(tf.cast(loss, tf.float32),(flag.shape[0],1))*tmp
 
             return i+1, adv_x, best_x, flag_cross, log_step, log_suc
 

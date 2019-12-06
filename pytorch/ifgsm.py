@@ -23,23 +23,26 @@ class IFGSM:
         delta = torch.zeros_like(inputs, requires_grad=True)
 
         for i in range(self.steps):
-            adv = delta + inputs
+            adv = delta.clone() + inputs
+            adv = torch.autograd.Variable(adv, requires_grad=True)
             logits = model(adv)
             pred_labels = logits.argmax(1)
-            loss = F.nll_loss(logits, labels)
-            #ce_loss = F.cross_entropy(logits, labels,reduction='sum')
-            #loss = multiplier * ce_loss
-            delta.retain_grad()
-            model.zero_grad()
+            #loss = F.nll_loss(logits, labels)
+            ce_loss = nn.CrossEntropyLoss()
+            loss = ce_loss(logits,torch.autograd.Variable(labels))
+            loss = multiplier * ce_loss
+            #delta.retain_grad()
+            #model.zero_grad()
             #loss.backward()
-            loss.backward(retain_graph=True)
+            loss.backward(retain_graph=False)
 
-            delta = self.eps_iter * delta.grad.sign_()
+            delta = self.eps_iter * adv.grad.sign_()
+            adv.grad.data.zero_()
 
             adv = adv + delta
             adv = torch.clamp(adv,0,1)
             diff = adv - inputs
             delta = torch.clamp(diff, -self.eps, self.eps)
-
+            model.zero_grad()
         return adv
 
