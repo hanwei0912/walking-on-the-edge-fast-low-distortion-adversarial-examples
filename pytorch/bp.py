@@ -32,7 +32,7 @@ def psi(grad_norm,delta_norm):
 
 def teddy_decay(i, steps, gamma):
     global_step = np.minimum(steps,i)
-    rate = i/(steps*1.0)
+    rate = i/(steps+1.0)
     rage = 1- gamma
     epsi = gamma + rate*rage
     return epsi
@@ -110,7 +110,7 @@ def estimate_beta_in(d,g,snd,dis,device):
     g_ort = g/ngo.view(-1,1,1,1).expand(-1,g.shape[1],g.shape[2],g.shape[3])
     tmp = torch.sum(d*g_ort,[1,2,3])
     tmp = tmp.view(-1,1,1,1).expand(-1,g.shape[1],g.shape[2],g.shape[3])
-    bac = dis.pow(2) - snd.pow(2) + dis.pow(2)
+    bac = dis.pow(2) - snd.pow(2) + tmp.pow(2)
     beta = tmp + torch.sqrt(bac)
     beta_min = 0.1*torch.ones(dis.shape)
     beta_max = dis - snd
@@ -153,38 +153,43 @@ class BP:
             logits = model(adv)
             pred_labels = logits.argmax(1)
             # our loss
-            our_loss =F.cross_entropy(logits,labels)
-            #our_loss = softmax_cross_entropy_our(logits, labels, self.device)
+            CF = torch.nn.CrossEntropyLoss()
+            our_loss = CF(logits,torch.autograd.Variable(labels))
+            #our_loss =F.cross_entropy(logits,labels)
+           # our_loss = softmax_cross_entropy_our(logits, labels, self.device)
             loss = multiplier * our_loss
             #our_loss.sum().backward(our_loss,retain_graph=False)
             loss.backward(torch.ones_like(loss),retain_graph=False)
-            grad = - adv.grad
+            grad = adv.grad
             adv.grad.data.zero_()
             grad_norm = grad.view(batch_size,-1).norm(p=2, dim=1)
+            pdb.set_trace()
 
             if (grad_norm== 0).any():
                 adv.grad[grad_norm== 0] = torch.randn_like(adv.grad[grad_norm== 0])
 
             grad_norm = grad.view(batch_size,-1).norm(p=2, dim=1)
             grad_norm = grad_norm.view(batch_size,1,1,1).expand(-1,grad.shape[1],grad.shape[2],grad.shape[3])
-            ng = grad/grad_norm
+            ng = - grad/grad_norm
 
             # not implement yet
             tan_psi, sin_psi = psi(ng, nd)
             eps = teddy_decay(i,self.steps, self.gamma)
 
             # stage 1
-            p_search = ng *eps
+            p_search = ng * 2
 
             # stage 2
             # out
             g_ort = out_direction(delta,grad,ng,grad_norm)
             dis = delta_norm*eps
             beta =estimate_beta_out(delta,grad,ng,delta_norm,grad_norm,sin_psi,g_ort,dis,7,self.levels)
+            beta_out = beta
             p_out = out_p(delta,grad,ng,delta_norm,grad_norm,sin_psi,beta,g_ort)
             # in
             dis = delta_norm/eps
             beta = estimate_beta_in(delta,grad,delta_norm,dis,self.device)
+            beta_in =beta
             p_in = ng*beta
 
             is_adv = (pred_labels == labels) if targeted else (pred_labels != labels)
@@ -196,12 +201,13 @@ class BP:
             delta = torch.where(fc, p_in, p_search)
             delta = torch.where(ia, p_out,delta)
 
-            adv=torch.clamp(adv+delta,0,1)
+            adv = torch.clamp(adv+delta,0,1)
             adv = quantization(adv,self.levels)
             logits = model(adv)
             pred_labels = logits.argmax(1)
             is_adv = (pred_labels == labels) if targeted else (pred_labels != labels)
             ia = is_adv.view(batch_size,1,1,1).expand(-1,grad.shape[1],grad.shape[2],grad.shape[3])
+            #pdb.set_trace()
 
             a = (best_x - inputs).view(batch_size, -1).norm(p=2,dim=1)
             b = (adv - inputs).view(batch_size, -1).norm(p=2,dim=1)
@@ -209,6 +215,7 @@ class BP:
             flag_save =(a>b).view(batch_size,1,1,1).expand(-1,grad.shape[1],grad.shape[2],grad.shape[3])
             nm_best_x = torch.where(flag_save, adv,best_x)
             best_x = torch.where(ia, nm_best_x,best_x)
+            #pdb.set_trace()
 
         return adv, best_x
 
