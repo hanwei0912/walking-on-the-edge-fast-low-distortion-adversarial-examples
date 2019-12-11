@@ -153,20 +153,20 @@ class BP:
             logits = model(adv)
             pred_labels = logits.argmax(1)
             # our loss
-            CF = torch.nn.CrossEntropyLoss()
-            our_loss = CF(logits,torch.autograd.Variable(labels))
-            #our_loss =F.cross_entropy(logits,labels)
+            #CF = torch.nn.CrossEntropyLoss()
+            #our_loss = CF(logits,torch.autograd.Variable(labels))
+            our_loss =F.cross_entropy(logits,labels,reduction='sum')
            # our_loss = softmax_cross_entropy_our(logits, labels, self.device)
             loss = multiplier * our_loss
             #our_loss.sum().backward(our_loss,retain_graph=False)
             loss.backward(torch.ones_like(loss),retain_graph=False)
-            grad = adv.grad
+            grad = adv.grad.clone()
             adv.grad.data.zero_()
             grad_norm = grad.view(batch_size,-1).norm(p=2, dim=1)
-            pdb.set_trace()
 
-            if (grad_norm== 0).any():
-                adv.grad[grad_norm== 0] = torch.randn_like(adv.grad[grad_norm== 0])
+            grad[grad_norm== 0] = 1e-12
+            # if (grad_norm== 0).any():
+                #adv.grad[grad_norm== 0] = torch.randn_like(adv.grad[grad_norm== 0])
 
             grad_norm = grad.view(batch_size,-1).norm(p=2, dim=1)
             grad_norm = grad_norm.view(batch_size,1,1,1).expand(-1,grad.shape[1],grad.shape[2],grad.shape[3])
@@ -212,9 +212,11 @@ class BP:
             a = (best_x - inputs).view(batch_size, -1).norm(p=2,dim=1)
             b = (adv - inputs).view(batch_size, -1).norm(p=2,dim=1)
 
+            #pdb.set_trace()
             flag_save =(a>b).view(batch_size,1,1,1).expand(-1,grad.shape[1],grad.shape[2],grad.shape[3])
             nm_best_x = torch.where(flag_save, adv,best_x)
             best_x = torch.where(ia, nm_best_x,best_x)
+            model.zero_grad()
             #pdb.set_trace()
 
         return adv, best_x

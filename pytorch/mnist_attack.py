@@ -36,7 +36,7 @@ DEVICE = torch.device('cuda:0' if (torch.cuda.is_available() and not args.cpu) e
 transform = transforms.Compose([transforms.ToTensor()])
 
 test_set = MNIST(args.data, train=False, transform=transform, download=True)
-test_loader = data.DataLoader(test_set, batch_size=10, shuffle=True, num_workers=args.workers, pin_memory=True)
+test_loader = data.DataLoader(test_set, batch_size=100, shuffle=True, num_workers=args.workers, pin_memory=True)
 
 model = SmallCNN().to(DEVICE)
 model_dict = model.load_state_dict(torch.load('./model/mnist.pth'))
@@ -61,12 +61,12 @@ for i, (images, labels) in enumerate(tqdm.tqdm(test_loader, ncols=80)):
     #best_x = attacker.attack(model, images, labels)
     adv,best_x = attacker.attack(model, images, labels)
     adv_pred = model(best_x).argmax(1)
-    i_sta = i*1
-    i_end = (i+1)*1
-    ori_label[i_sta:i_end]=labels.cpu().detach().numpy().reshape((1,1))
+    i_sta = i*100
+    i_end = (i+1)*100
+    ori_label[i_sta:i_end]=labels.cpu().detach().numpy().reshape((100,1))
     ori_image[i_sta:i_end]=images.cpu().detach().numpy()
     adv_image[i_sta:i_end]=best_x.cpu().detach().numpy()
-    adv_label[i_sta:i_end]=adv_pred.cpu().detach().numpy().reshape((1,1))
+    adv_label[i_sta:i_end]=adv_pred.cpu().detach().numpy().reshape((100,1))
 
 # Compute
 success_rate = np.mean(adv_label != ori_label)
