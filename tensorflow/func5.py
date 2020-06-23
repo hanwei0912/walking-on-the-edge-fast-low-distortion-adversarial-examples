@@ -82,10 +82,10 @@ def main(_):
         name.append(filenames)
         b_i = bb_i
 
-        save_images(x_adv, filenames, FLAGS.output_dir)
+        #save_images(x_adv, filenames, FLAGS.output_dir)
     #print(time.time()-begin)
-    path_data = '/nfs/nas4/data-hanwei/data-hanwei/DATA/Search/inception/Ens4/OUR/'+str(eps)+'.mat'
-    si.savemat(path_data,{'x_adv':adv_image,'ori_a':acc_ori,'p':acc_val,'l2':l2_norm,'name':name,'pred_o':pred_score,'pred_a':pred_score_adv})
+    #path_data = '/nfs/nas4/data-hanwei/data-hanwei/DATA/Search/inception/Ens4/OUR/'+str(eps)+'.mat'
+    #si.savemat(path_data,{'x_adv':adv_image,'ori_a':acc_ori,'p':acc_val,'l2':l2_norm,'name':name,'pred_o':pred_score,'pred_a':pred_score_adv})
     #path_save='/nfs/nas4/data-hanwei/data-hanwei/DATA/Search/inception/OUR1/'+str(eps)+'.mat'
     #si.savemat(path_save,{'suc':acc_val,'norm':l2_norm})
 
