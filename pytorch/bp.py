@@ -129,7 +129,7 @@ class BP:
 
     def __init__(self,
                 steps,
-                gamma = 0.7,
+                gamma = 0.3,
                 levels = 256,
                 device = torch.device('cpu'),
                 callback = None):
@@ -184,7 +184,7 @@ class BP:
             eps = teddy_decay(i,self.steps, self.gamma)
 
             # stage 1
-            p_search = ng * 2
+            p_search = ng * 1
 
             # stage 2
             # out

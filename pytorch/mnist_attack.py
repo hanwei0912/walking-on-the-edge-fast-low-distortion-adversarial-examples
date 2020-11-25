@@ -44,7 +44,7 @@ model_dict = model.load_state_dict(torch.load('./model/mnist.pth'))
 #attacker = FGSM(eps=0.3, device=DEVICE)
 #attacker = IFGSM(steps=20,eps=0.3,eps_iter=0.1, device=DEVICE)
 #attacker = PGD(steps=20,eps=4,eps_iter=3, device=DEVICE)
-attacker = BP(steps=20, device=DEVICE)
+attacker = BP(steps=20, device=DEVICE, gamma=0.7)
 #attacker = DDN(steps=100, device=DEVICE)
 
 requires_grad_(model, True)
