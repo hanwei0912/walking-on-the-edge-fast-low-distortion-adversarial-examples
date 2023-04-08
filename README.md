@@ -8,7 +8,10 @@ This code is for the paper [Walking on the Edge: Fast, Low-Distortion Adversaria
 
 The original code is built based on the TensorFlow. The TensorFlow version is usable. 
 
-We are have some issues on the Pytorch version. Currently, the Pytorch version does not perform the similar way as TensorFlow verison. We have memory issue and the distorsion is much higher than the TensorFlow version. It is still under the debugging.
+We are have some issues on the Pytorch version. Currently, the Pytorch version does not perform the similar way as TensorFlow verison. We have memory issue and the distorsion is much higher than the TensorFlow version. 
+
+Please check the link below for the Pytorch version.
+https://gitlab.inria.fr/bbonnet/adversarial-quantization/-/blob/master/attacks/bp_attack.py
 
 ## Run the code
 1. Install dependencies.
