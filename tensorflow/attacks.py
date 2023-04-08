@@ -108,25 +108,6 @@ class KKTFun5(Attack):
     def parse_params(self, eps=0.3, alp=0.4, nb_iter=10, y=None, y_target=None, clip_min=None,
             clip_max=None, ord=2, levels = 256, **kwargs):
 
-        """
-        Take in a dictionary of parameters and applies attack-specific checks
-        before saving them as attributes.
-        Attack-specific parameters:
-        :param eps: (optional float) maximum distortion of adversarial example
-                    compared to original input
-        :param eps_iter: (optional float) step size for each attack iteration
-        :param nb_iter: (optional int) Number of attack iterations.
-        :param y: (optional) A tensor with the true labels.
-        :param y_target: (optional) A tensor with the labels to target. Leave
-                         y_target=None if y is also set. Labels should be
-                         one-hot-encoded.
-        :param ord: (optional) Order of the norm (mimics Numpy).
-                    Possible values: np.inf, 1 or 2.
-        :param decay_factor: (optional) Decay factor for the momentum term.
-        :param clip_min: (optional float) Minimum input component value
-        :param clip_max: (optional float) Maximum input component value
-        """
-
         # Save attack-specific parameters
         self.nb_iter = nb_iter
         self.eps = eps
